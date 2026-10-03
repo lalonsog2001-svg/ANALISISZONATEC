@@ -23,7 +23,7 @@ Esta herramienta introduce la variable que falta — **captación de la oficina*
 
 ```bash
 npm start          # sirve la app en http://localhost:8000 (bind 0.0.0.0)
-npm test           # 108 pruebas: motor, parser y humo de interfaz (sin dependencias)
+npm test           # 108 pruebas + auditoría de la presentación (sin dependencias)
 npm run docs       # regenera docs/plan-maestro.md, modelo-financiero.md y fuentes.md
 npm run verificar  # 22 pruebas en DOM real con jsdom, incluye la carga del expediente (requiere: npm i -D jsdom)
 npm run analizar   # analiza expedientes/san-bartolo-ameyalco.json y regenera su anexo de datos
@@ -72,6 +72,13 @@ npm run copia     # → copias/analisiszonatec-san-bartolo-ameyalco.html
 
 Ese HTML **trae embebidos la app, los estilos y el expediente**: se abre con doble clic, funciona `file://` y no hace ninguna petición de red (`fetch` se sustituye por los datos embebidos). Se puede mandar por correo o WhatsApp y se ve igual en cualquier navegador. La verificación `node scripts/verificar-copia.mjs` carga la copia como `file://` y comprueba que el dictamen esté a la vista.
 
+## Presentación para junta
+
+`docs/presentacion-san-bartolo-ameyalco.html` es el **deck de 17 diapositivas** con todo lo que arroja abrir oficina en San Bartolo Ameyalco: resumen ejecutivo, polígono, muestra y filtro, precios, segmentación por banda, prueba de piso, sensibilidad, los 8 criterios del dictamen, las 2 condiciones abiertas, los 7 riesgos, la ruta de 12 semanas, los supuestos declarados y la decisión que se pide.
+
+- Se abre con doble clic (HTML autocontenido, sin internet), se navega con **← →** (o espacio) y se exporta a PDF con **Ctrl+P** → *Guardar como PDF*: el CSS de impresión ya está en **A4 horizontal, una diapositiva por página**.
+- Cada cifra está auditada contra el motor: `node scripts/verificar-presentacion.mjs` compara **38 números** del deck contra el cálculo real y `npm test` lo corre siempre. Si el expediente cambia y la presentación queda vieja, la prueba truena.
+
 ## Estructura
 
 | Archivo | Contenido |
@@ -90,7 +97,8 @@ Ese HTML **trae embebidos la app, los estilos y el expediente**: se abre con dob
 | `scripts/analizar-zona.mjs` | Analiza un expediente real, genera el anexo de datos y audita que el informe cite las cifras del motor |
 | `scripts/generar-docs.mjs` | Genera la documentación desde el código para que no se desincronice |
 | `expedientes/` | Expedientes reales capturados (JSON con URL por inmueble) y el manifiesto que consume la interfaz |
-| `docs/` | Plan Maestro, modelo financiero, fuentes, metodología y prompt completo del agente |
+| `docs/` | Plan Maestro, modelo financiero, fuentes, metodología, prompt del agente e informe y presentación del caso |
+| `scripts/verificar-presentacion.mjs` | Audita que las cifras de la presentación coincidan con el motor (sin dependencias) |
 
 ## Los 8 criterios del dictamen
 

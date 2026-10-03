@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>San Bartolo Ameyalco AO-04 — Estudio de zona para apertura de oficina</title>
+<style>
+  :root{
+    --fondo:#0d1117; --panel:#151b24; --panel2:#1b232e; --linea:#28323f;
+    --tinta:#e8edf4; --suave:#9bb0c6; --tenue:#6b7f95;
+    --acento:#37c0a8; --acento2:#4ea1ff; --amarillo:#f5b544; --rojo:#ef5b5b; --verde:#41c98a;
+    --sombra:0 10px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--fondo);color:var(--tinta);
+    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif}
+  body{font-size:19px;line-height:1.5}
+  .deck{position:relative}
+  .slide{display:none;min-height:100vh;padding:52px 64px 84px;flex-direction:column;justify-content:center}
+  .slide.activa{display:flex}
+  h1{font-size:52px;line-height:1.08;margin:0 0 14px}
+  h2{font-size:38px;line-height:1.15;margin:0 0 6px}
+  h3{font-size:22px;margin:0 0 10px}
+  p{margin:0 0 12px}
+  .eyebrow{text-transform:uppercase;letter-spacing:.16em;font-size:13px;color:var(--acento);font-weight:700;margin-bottom:18px}
+  .sub{color:var(--suave);font-size:21px}
+  .pie-slide{color:var(--tenue);font-size:14px;margin-top:26px}
+  .badge{display:inline-flex;align-items:center;gap:12px;background:linear-gradient(180deg,#2a2416,#1c1a13);
+    border:1px solid #6b5a25;border-radius:14px;padding:16px 22px;font-size:26px;font-weight:700;color:var(--amarillo)}
+  .badge .puntaje{color:var(--suave);font-weight:500;font-size:18px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .g4{grid-template-columns:repeat(4,1fr)}
+  .card{background:var(--panel);border:1px solid var(--linea);border-radius:14px;padding:20px 22px}
+  .card h3{color:var(--suave);font-size:15px;text-transform:uppercase;letter-spacing:.09em;font-weight:700}
+  .dato{font-size:34px;font-weight:700;letter-spacing:-.02em}
+  .dato.chico{font-size:26px}
+  .nota{color:var(--tenue);font-size:14px;margin-top:6px}
+  table{width:100%;border-collapse:collapse;font-size:17px}
+  th,td{text-align:left;padding:10px 12px;border-bottom:1px solid var(--linea)}
+  th{color:var(--suave);font-size:14px;text-transform:uppercase;letter-spacing:.07em}
+  td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+  tr.destacada td{background:#1d2635}
+  .pill{display:inline-block;padding:3px 10px;border-radius:999px;font-size:13px;font-weight:700}
+  .p-verde{background:#12301f;color:var(--verde);border:1px solid #1d5c3c}
+  .p-amar{background:#2f2712;color:var(--amarillo);border:1px solid #6b5a25}
+  .p-rojo{background:#331717;color:var(--rojo);border:1px solid #6e2b2b}
+  ul{margin:0 0 0 20px;padding:0}
+  li{margin:0 0 9px}
+  .riesgo{border-left:4px solid var(--rojo);background:#181418;border-radius:0 12px 12px 0;padding:14px 18px;margin-bottom:12px}
+  .riesgo.medio{border-left-color:var(--amarillo)}
+  .riesgo b{display:block;font-size:18px;margin-bottom:2px}
+  .riesgo span{color:var(--suave);font-size:16px}
+  .barra{height:14px;border-radius:8px;background:#222b36;overflow:hidden;margin-top:8px}
+  .barra i{display:block;height:100%;background:linear-gradient(90deg,var(--acento),var(--acento2))}
+  .kpi-linea{display:flex;justify-content:space-between;gap:16px;font-size:17px;padding:7px 0;border-bottom:1px dashed var(--linea)}
+  .kpi-linea b{font-variant-numeric:tabular-nums}
+  .nav{position:fixed;right:22px;bottom:18px;display:flex;align-items:center;gap:10px;z-index:10}
+  .nav button{background:var(--panel2);color:var(--tinta);border:1px solid var(--linea);border-radius:10px;
+    padding:9px 14px;font-size:15px;cursor:pointer}
+  .nav button:hover{border-color:var(--acento)}
+  .contador{color:var(--suave);font-size:14px;font-variant-numeric:tabular-nums}
+  .progreso{position:fixed;left:0;top:0;height:3px;background:linear-gradient(90deg,var(--acento),var(--acento2));z-index:11;width:0}
+  .fuente{color:var(--tenue);font-size:13px;margin-top:12px}
+  .split{display:grid;grid-template-columns:1.1fr .9fr;gap:28px;align-items:center}
+  .tag{display:inline-block;background:#1a2431;border:1px solid #2f3d4e;color:var(--suave);
+    border-radius:8px;padding:2px 9px;font-size:13px;font-weight:600}
+  @media print{
+    html,body{background:#fff;color:#111}
+    .nav,.progreso{display:none !important}
+    .slide{display:flex !important;min-height:0;padding:26px 30px;page-break-after:always;break-after:page}
+    .card,.riesgo,.badge{box-shadow:none;border-color:#c9d2dd;background:#f6f8fa;color:#111}
+    .card h3,.nota,.nota *,.fuente,.sub,.kpi-linea,.riesgo span{color:#4a5568}
+    th,td{border-color:#d7dee7}
+    .badge{background:#fdf6e3;color:#8a6d1f}
+    .tag{background:#eef2f7;color:#334}
+    .dato{color:#0b3d5c}
+  }
+  @page{size:A4 landscape;margin:8mm}
+</style>
+</head>
+<body>
+<div class="progreso" id="progreso"></div>
+<div class="deck" id="deck">
+
+  <!-- 1 · PORTADA -->
+  <section class="slide activa">
+    <div class="eyebrow">Análisis de zona · Fase 0 · Apertura de oficina</div>
+    <h1>San Bartolo Ameyalco<br><span class="sub">Polígono AO-04 «Poniente» — Álvaro Obregón, CDMX</span></h1>
+    <p class="sub" style="margin-bottom:26px">Estudio completo de zona para decidir <b>si se abre</b>, <b>dónde</b> y <b>con qué condiciones</b>.</p>
+    <div class="badge">🟡 VIABLE CON CONDICIONES / RIESGO <span class="puntaje">90 de 100 · 2 condiciones abiertas</span></div>
+    <p class="pie-slide">Muestra: 70 anuncios capturados el 2 de octubre de 2026 (59 válidos, con URL por inmueble) · Precios de oferta, no de cierre · Todas las cifras en MXN.</p>
+  </section>
+
+  <!-- 2 · RESUMEN EJECUTIVO -->
+  <section class="slide">
+    <div class="eyebrow">Resumen ejecutivo</div>
+    <h2>La zona da negocio; el riesgo es el papel, no el mercado</h2>
+    <div class="grid g4" style="margin-top:22px">
+      <div class="card"><h3>Mediana de oferta</h3><div class="dato">$18.5 M</div><div class="nota">comisión del 6% = $1,110,000</div></div>
+      <div class="card"><h3>Cobertura del costo</h3><div class="dato">530%</div><div class="nota">margen $619,125/mes</div></div>
+      <div class="card"><h3>Participación requerida</h3><div class="dato">1.9%</div><div class="nota">del mercado de la zona</div></div>
+      <div class="card"><h3>Bloqueos para el 🟢</h3><div class="dato">2</div><div class="nota">certeza jurídica y competencia</div></div>
+    </div>
+    <div class="grid g3" style="margin-top:16px">
+      <div class="card"><h3>Lo que sí está medido</h3><p style="margin:0">Precios, demanda, comisión, cobertura y trazabilidad: <b>59 avisos con URL</b> (100% trazable).</p></div>
+      <div class="card"><h3>Lo que no está medido</h3><p style="margin:0"><b>0 de 59 folios</b> verificados en el RPP y competencia solo como <b>piso de 30 marcas</b>.</p></div>
+      <div class="card"><h3>La decisión de hoy</h3><p style="margin:0">Autorizar las dos verificaciones. <b>No firmar local ni contratar</b> antes de cerrarlas.</p></div>
+    </div>
+    <p class="fuente">Fuente: motor AnalisisZonaTec sobre <span class="tag">expedientes/san-bartolo-ameyalco.json</span> · anexo completo en <span class="tag">docs/anexo-datos-sba-ao-04.md</span></p>
+  </section>
+
+  <!-- 3 · EL MODELO -->
+  <section class="slide">
+    <div class="eyebrow">El punto de partida · modelo inmutable</div>
+    <h2>Contra qué se mide la zona</h2>
+    <div class="grid g3" style="margin-top:20px">
+      <div class="card"><h3>Costo operativo</h3><div class="dato">$120,000</div><div class="nota">+20% de buffer → <b>$144,000/mes</b><br>escenario alto → $160,000/mes</div></div>
+      <div class="card"><h3>Comisión</h3><div class="dato">6%</div><div class="nota">sobre precio de venta<br>split 3 + 3</div></div>
+      <div class="card"><h3>Ticket mínimo</h3><div class="dato">$2.4 M</div><div class="nota">para cubrir 1 mes de costo con 1 venta<br>escenario alto → $2,666,667</div></div>
+      <div class="card"><h3>Delimitación territorial</h3><div class="dato">5,500</div><div class="nota">propiedades por oficina<br><b>no modificable</b></div></div>
+      <div class="card"><h3>Rotación de referencia</h3><div class="dato">1.5–3%</div><div class="nota">ventas anuales del inventario de la zona</div></div>
+      <div class="card"><h3>Colchón exigido</h3><div class="dato">12 meses</div><div class="nota">$1,728,000 antes de abrir</div></div>
+    </div>
+    <p class="fuente">Si el ticket de la zona no alcanza el mínimo, la estructura no se sostiene. Si la zona exige más del 30% del mercado, el plan depende de dominar el territorio y el dictamen se bloquea.</p>
+  </section>
+
+  <!-- 4 · POLÍGONO -->
+  <section class="slide">
+    <div class="eyebrow">Territorio</div>
+    <h2>Polígono propuesto: AO-04 «Poniente»</h2>
+    <div class="split">
+      <div>
+        <table>
+          <tr><th>Límite</th><th>Referencia</th></tr>
+          <tr><td>Norte</td><td>Av. Desierto de los Leones (Hacienda Buenavista → entronque)</td></tr>
+          <tr><td>Este</td><td>Calz. al Desierto de los Leones · límite con Lomas de los Cedros / Tetelpan</td></tr>
+          <tr><td>Sur</td><td>Camino al Desierto de los Leones · línea de Suelo de Conservación</td></tr>
+          <tr><td>Oeste</td><td>Pueblo de Santa Rosa Xochiac</td></tr>
+          <tr><td>CP</td><td>01800 / 01807</td></tr>
+        </table>
+        <p class="nota" style="margin-top:12px">Ancla 19.33286, −99.26549 (Pueblo de San Bartolo Ameyalco, 2,681 m). Incluye Rancho San Francisco, Ampl. Rancho San Francisco, Tlacoyaque, El Capulín, Caballito 1ª y 2ª sección, Lomas de Chamontoya.</p>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px"><h3>Por qué este polígono y no solo el casco</h3>
+          <p style="margin:0">Integra <b>tres submercados</b> para que una sola oficina pueda vivir del corredor medio-alto sin depender del casco (delgado) ni del lujo (nicho).</p></div>
+        <div class="card" style="margin-bottom:14px"><h3>Normativa que manda aquí</h3>
+          <p style="margin:0">Programa Parcial de <b>Poblado Rural 1993</b> (H2/70/R: 1 casa por 500 m², 3 niveles, 60% área libre) · ZEDEC Tlacoyaque (DOF 05/10/1994) · <b>Suelo de Conservación</b> en barranca Guadalupe y Cerro de Atesquillo.</p></div>
+        <div class="card"><h3>Pendiente de cierre</h3>
+          <p style="margin:0">Vértices en WGS84 y conteo de predios en el <b>SIG de Catastro</b>. No se publican coordenadas aproximadas de memoria.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · MUESTRA -->
+  <section class="slide">
+    <div class="eyebrow">Evidencia</div>
+    <h2>70 anuncios capturados → 59 válidos</h2>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card"><h3>Filtro de Fase 0 aplicado</h3>
+        <table style="margin-top:6px">
+          <tr><td>Excluidos por duplicado de publicación</td><td class="num">7</td></tr>
+          <tr><td>Excluidos por remate</td><td class="num">3</td></tr>
+          <tr><td>Excluidos por cesión de derechos</td><td class="num">1</td></tr>
+          <tr class="destacada"><td><b>Muestra válida</b></td><td class="num"><b>59</b></td></tr>
+        </table>
+        <p class="nota">Fuera del cálculo también quedaron terrenos, rentas y anuncios en USD. Sin URL de origen, el dato no entra al expediente.</p>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px"><h3>Trazabilidad</h3><div class="dato">100%</div><div class="nota">59 de 59 inmuebles con URL de origen verificable</div></div>
+        <div class="card"><h3>Advertencias de método</h3>
+          <ul style="margin-bottom:0">
+            <li>Los precios son <b>de oferta</b>, no de cierre: nadie publica cierres.</li>
+            <li>Un mismo inmueble se anunciaba con precios distintos en el mismo portal (se detectó y excluyó).</li>
+            <li>Cruce desigual de portales; se completará con muestreo balanceado.</li>
+          </ul></div>
+      </div>
+    </div>
+    <p class="fuente">Tabla completa de los 70 avisos (precio, m², estatus y URL) en <span class="tag">docs/anexo-datos-sba-ao-04.md §10</span></p>
+  </section>
+
+  <!-- 6 · PRECIOS -->
+  <section class="slide">
+    <div class="eyebrow">Lo que arroja el mercado</div>
+    <h2>Precios del polígono completo</h2>
+    <div class="split">
+      <div>
+        <div class="kpi-linea"><span>Mediana</span><b>$18,500,000</b></div>
+        <div class="kpi-linea"><span>Promedio</span><b>$22,081,185</b></div>
+        <div class="kpi-linea"><span>Rango P25 – P75</span><b>$7,475,000 – $28,600,000</b></div>
+        <div class="kpi-linea"><span>Mínimo – máximo</span><b>$2,900,000 – $69,750,000</b></div>
+        <div class="kpi-linea"><span>Precio por m² (mediana)</span><b>$36,588</b></div>
+        <div class="kpi-linea"><span>Dispersión (CV)</span><b>77%</b></div>
+        <div class="kpi-linea"><span>Comisión mediana (6%)</span><b>$1,110,000</b></div>
+        <div class="kpi-linea"><span>Ticket mínimo requerido</span><b>$2,400,000</b></div>
+        <div class="kpi-linea"><span>Brecha vs. mínimo</span><b>+$16,100,000 (671%)</b></div>
+      </div>
+      <div>
+        <div class="card" style="border-color:#6e2b2b;background:#1a1416">
+          <h3 style="color:#ffb3b3">⚠️ Advertencia que cambia la decisión</h3>
+          <p style="margin:0">La mediana de <b>$18.5 M está inflada por un bolsillo de lujo</b> (Rancho San Francisco, Circuito San Francisco, alto Desierto de los Leones). Con CV de 77% los segmentos están mezclados: <b>decidir con la mediana global sobreestima el negocio</b>. La lectura operativa es por banda (siguiente diapositiva).</p>
+        </div>
+        <div class="card" style="margin-top:14px"><h3>El negocio como porcentaje del mercado</h3>
+          <p style="margin:0">Demanda de la zona: 5,500 × 1.5% = <b>83 ventas/año</b> (6.9/mes). Para cubrir el costo hacen falta <b>1.56 ventas/año</b>: el <b>1.9%</b> del mercado. Con la captación asumida del 10% la oficina lograría <b>8.25 ventas/año</b>.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7 · BANDAS -->
+  <section class="slide">
+    <div class="eyebrow">Segmentación · la lectura operativa</div>
+    <h2>Aquí está el negocio real: por banda de precio</h2>
+    <table style="margin-top:18px">
+      <tr>
+        <th>Banda</th><th class="num">Inmuebles</th><th class="num">Mediana</th><th class="num">Comisión 6%</th>
+        <th class="num">Ventas/año para equilibrio</th><th class="num">Participación requerida</th><th class="num">Cobertura con 10%</th><th class="num">Margen/mes</th>
+      </tr>
+      <tr class="destacada">
+        <td><b>≤ $8 M</b> — casco y popular-medio</td><td class="num">16</td><td class="num"><b>$4,500,000</b></td><td class="num">$270,000</td>
+        <td class="num"><b>6.4</b></td><td class="num">7.8%</td><td class="num">129%</td><td class="num"><b>$41,625</b></td>
+      </tr>
+      <tr>
+        <td>$8 – $20 M — medio-alto</td><td class="num">16</td><td class="num">$15,750,000</td><td class="num">$945,000</td>
+        <td class="num">1.83</td><td class="num">2.2%</td><td class="num">451%</td><td class="num">$505,688</td>
+      </tr>
+      <tr>
+        <td>&gt; $20 M — fraccionamientos y lujo</td><td class="num">27</td><td class="num">$32,000,000</td><td class="num">$1,920,000</td>
+        <td class="num">0.90</td><td class="num">1.1%</td><td class="num">917%</td><td class="num">$1,176,000</td>
+      </tr>
+    </table>
+    <div class="grid g3" style="margin-top:18px">
+      <div class="card"><h3>Solo casco</h3><p style="margin:0">Funciona, pero es <b>delgado</b>: 6.4 ventas al año y margen de $41,625/mes. Cualquier mes flojo se come el margen.</p></div>
+      <div class="card"><h3>Casco + medio-alto</h3><p style="margin:0">Aquí el negocio es <b>sólido</b>: la comisión de la banda media ($945,000) paga 6.5 meses de costo.</p></div>
+      <div class="card"><h3>Solo lujo</h3><p style="margin:0">Nicho de 0.9 ventas/año de equilibrio: producto escaso, ciclo largo. <b>No se puede depender de él.</b></p></div>
+    </div>
+    <p class="fuente">Banda = precio de oferta. El corte es objetivo y auditable: ≤ $8 M, $8–20 M, &gt; $20 M.</p>
+  </section>
+
+  <!-- 8 · PRUEBA DE PISO -->
+  <section class="slide">
+    <div class="eyebrow">Prueba de piso · el número que de verdad importa</div>
+    <h2>¿Aguanta la oficina captando solo el mercado popular- medio?</h2>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card">
+        <h3>El cálculo</h3>
+        <div class="kpi-linea"><span>Costo anual con buffer</span><b>$1,728,000</b></div>
+        <div class="kpi-linea"><span>Comisión de la banda ≤ $8 M</span><b>$270,000</b></div>
+        <div class="kpi-linea"><span>Ventas/año para equilibrio</span><b>6.4</b></div>
+        <div class="kpi-linea"><span>Demanda de la banda</span><b>82.5 ventas/año</b></div>
+        <div class="kpi-linea"><span>Participación requerida</span><b>7.8%</b></div>
+        <div class="kpi-linea"><span>Cobertura con captación del 10%</span><b>129%</b></div>
+        <div class="kpi-linea"><span>Margen</span><b>$41,625/mes</b></div>
+        <p class="nota">Y con el escenario de costo alto ($160,000/mes) el margen baja a <b>$25,625/mes</b>: el colchón es de dos dígitos bajos.</p>
+      </div>
+      <div class="card" style="border-color:#6b5a25">
+        <h3 style="color:var(--amarillo)">Cómo se lee</h3>
+        <p><b>Verde en capacidad, amarillo en exigencia.</b> La zona popular paga el costo con holgura de 129%, pero exige 7.8% del mercado de la banda: captación puerta a puerta, no esperar a que llegue el cliente.</p>
+        <p style="margin-bottom:0">La salida no es rechazar la zona: es <b>construir cartera mixta</b> (casco + corredor $8–20 M) y reservar el lujo para comisiones puntuales. Con mezcla 50/50 de casco y medio-alto, el margen sube a <b>$273,656/mes</b>.</p>
+      </div>
+    </div>
+    <p class="fuente">Cálculo con la comisión mediana de cada banda, no con la del polígono completo.</p>
+  </section>
+
+  <!-- 9 · SENSIBILIDAD -->
+  <section class="slide">
+    <div class="eyebrow">Sensibilidad</div>
+    <h2>Qué pasa si la zona rota más rápido (o más lento)</h2>
+    <table style="margin-top:18px">
+      <tr><th>Rotación anual</th><th class="num">Ventas de la zona/año</th><th class="num">Participación requerida</th><th class="num">Ingreso oficina/mes</th><th class="num">Cobertura del costo</th><th class="num">Margen/mes</th></tr>
+      <tr class="destacada"><td>1.5% <span class="tag">escenario base</span></td><td class="num">83</td><td class="num">1.9%</td><td class="num">$763,125</td><td class="num">530%</td><td class="num">$619,125</td></tr>
+      <tr><td>2.25% <span class="tag">medio</span></td><td class="num">124</td><td class="num">1.3%</td><td class="num">$1,144,688</td><td class="num">795%</td><td class="num">$1,000,688</td></tr>
+      <tr><td>3.0% <span class="tag">alto</span></td><td class="num">165</td><td class="num">0.9%</td><td class="num">$1,526,250</td><td class="num">1,060%</td><td class="num">$1,382,250</td></tr>
+    </table>
+    <div style="margin-top:22px">
+      <div style="color:var(--suave);font-size:15px">Margen mensual por escenario de rotación</div>
+      <div class="barra"><i style="width:45%"></i></div>
+      <div class="nota">1.5% → $619,125/mes</div>
+      <div class="barra"><i style="width:72%"></i></div>
+      <div class="nota">2.25% → $1,000,688/mes</div>
+      <div class="barra"><i style="width:100%"></i></div>
+      <div class="nota">3.0% → $1,382,250/mes</div>
+    </div>
+    <p class="fuente">El cálculo usa el escenario base prudente (1.5%, el mínimo de referencia) para no maquillar el resultado.</p>
+  </section>
+
+  <!-- 10 · SEMÁFORO -->
+  <section class="slide">
+    <div class="eyebrow">Dictamen</div>
+    <h2>Semáforo financiero: 8 criterios ponderados</h2>
+    <table style="margin-top:16px">
+      <tr><th>Criterio</th><th class="num">Peso</th><th>Estado</th><th>Medición</th></tr>
+      <tr><td>Muestra válida</td><td class="num">3</td><td><span class="pill p-verde">🟢 verde</span></td><td>59 válidos de 70 (exigido ≥ 20)</td></tr>
+      <tr><td>Ticket vs. punto de equilibrio</td><td class="num">3</td><td><span class="pill p-verde">🟢 verde</span></td><td>comisión $1,110,000 ≥ $2,400,000 del mínimo</td></tr>
+      <tr><td>Participación de mercado requerida</td><td class="num">2</td><td><span class="pill p-verde">🟢 verde</span></td><td>1.9% (verde hasta 15%; rojo arriba de 30%)</td></tr>
+      <tr><td>Cobertura del costo con la captación asumida</td><td class="num">2</td><td><span class="pill p-verde">🟢 verde</span></td><td>530% · margen $619,125/mes</td></tr>
+      <tr class="destacada"><td><b>Certeza jurídica (RPP)</b></td><td class="num">2</td><td><span class="pill p-amar">🟡 sin medir</span></td><td>0 de 59 inmuebles con folio real verificado</td></tr>
+      <tr class="destacada"><td><b>Competencia en 1.5 km</b></td><td class="num">1</td><td><span class="pill p-amar">🟡 piso</span></td><td>30 marcas con inventario publicado (no es conteo de oficinas)</td></tr>
+      <tr><td>Trazabilidad (fuente y URL)</td><td class="num">1</td><td><span class="pill p-verde">🟢 verde</span></td><td>59 de 59 con URL (100%)</td></tr>
+      <tr><td>Colchón de capital</td><td class="num">1</td><td><span class="pill p-verde">🟢 verde</span></td><td>12 meses = $1,728,000</td></tr>
+    </table>
+    <p class="fuente" style="margin-top:16px"><b style="color:var(--amarillo)">Resultado: 🟡 VIABLE CON CONDICIONES / RIESGO · 90/100.</b> Sin criterios rojos. La luz verde está bloqueada por diseño: un criterio duro sin medir no puede ponerse verde.</p>
+  </section>
+
+  <!-- 11 · CONDICIONES -->
+  <section class="slide">
+    <div class="eyebrow">Lo único que falta</div>
+    <h2>Dos verificaciones abren (o cierran) la decisión</h2>
+    <div class="grid g2" style="margin-top:20px">
+      <div class="card" style="border-color:#6b5a25">
+        <h3 style="color:var(--amarillo)">1 · Certeza jurídica — peso 2</h3>
+        <p><b>Hoy:</b> 0 de 59 folios verificados en el RPP. <b>No es 0% de certeza: es certeza no medida.</b></p>
+        <p><b>Riesgo documentado:</b> el DOF del 18/11/1994 (expropiación de 393,150 m² del casco) dejó constancia de que los antecedentes del RPP <b>no concordaban con los poseedores</b>. Hubo expropiaciones en 1976, 1977 y 1991 (CORETT) y 10 polígonos excluidos.</p>
+        <p style="margin-bottom:0"><b>Acción:</b> 20 inmuebles → folio real, titular registral vs. poseedor, gravámenes. Se recarga el expediente y el dictamen se recalcula.</p>
+      </div>
+      <div class="card" style="border-color:#6b5a25">
+        <h3 style="color:var(--amarillo)">2 · Competencia — peso 1</h3>
+        <p><b>Hoy:</b> 30 marcas distintas anuncian inventario en el polígono. Es un <b>piso</b> (cuántas agencias publican), no el conteo de oficinas a 1.5 km.</p>
+        <p><b>Lectura:</b> si todas compartieran el mercado, cada marca vendería <b>2.75 inmuebles al año</b>. Tecnocasa <b>no tiene oficina en San Bartolo</b>; sí agentes en Santa Fe, San Ángel y Olivar.</p>
+        <p style="margin-bottom:0"><b>Acción:</b> conteo DENUE (SCIAN 5311) + recorrido físico. Verde hasta 8 oficinas; rojo arriba de 15.</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px;border-color:#1d5c3c">
+      <h3 style="color:var(--verde)">Impacto de cerrarlas</h3>
+      <p style="margin:0">Si el RPP confirma ≥ 80% de certeza y el DENUE da ≤ 8 oficinas, el dictamen pasa a <b>🟢 VIABLE</b>. Si la certeza cae por debajo de 60%, pasa a <b>🔴 NO VIABLE</b> — con la muestra actual no hay término medio cómodo.</p>
+    </div>
+  </section>
+
+  <!-- 12 · RIESGOS -->
+  <section class="slide">
+    <div class="eyebrow">Alerta de riesgo</div>
+    <h2>Siete riesgos, en orden de peso</h2>
+    <div class="grid g2" style="margin-top:14px">
+      <div>
+        <div class="riesgo"><b>1 · Registral (manda)</b><span>El DOF documentó que los antecedentes registrales no concordaban con los poseedores. Sin folio verificado, una casa “en venta” puede no ser escriturable. Ninguna exclusividad sin folio y cuenta catastral.</span></div>
+        <div class="riesgo medio"><b>2 · Suelo de Conservación</b><span>Barranca Guadalupe y Cerro de Atesquillo: menos producto nuevo, restricciones de construcción y menor financiabilidad. Limita el techo de inventario.</span></div>
+        <div class="riesgo medio"><b>3 · Agua y topografía</b><span>Zonas abastecidas por pipas y pendientes de 30–45%: afecta el atractivo del producto y el costo de remodelación.</span></div>
+        <div class="riesgo medio"><b>4 · Mediana contaminada</b><span>CV de 77%: la mediana global sobreestima el negocio. La decisión se toma con la banda ≤ $8 M y su prueba de piso.</span></div>
+      </div>
+      <div>
+        <div class="riesgo medio"><b>5 · Competencia sin medir</b><span>30 marcas ya anuncian aquí. Falta el conteo real de oficinas y el recorrido físico.</span></div>
+        <div class="riesgo medio"><b>6 · Precios de oferta, no de cierre</b><span>Nadie publica cierres y no se van a inventar: se medirá con OVICA y el Índice SHF de precios de vivienda.</span></div>
+        <div class="riesgo medio"><b>7 · Denominador sin confirmar</b><span>El cálculo usa la regla de <b>5,500 propiedades</b>; nadie ha confirmado aún con Catastro cuántas hay en el polígono. Si son menos, la demanda baja proporcionalmente.</span></div>
+        <div class="card" style="margin-top:6px"><h3>Lo que no vamos a hacer</h3><p style="margin:0">Rellenar ningún hueco con estimaciones: lo que no está medido se declara <b>SIN MEDIR</b> y se dice con qué fuente oficial se mide.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · REGLAS -->
+  <section class="slide">
+    <div class="eyebrow">Transparencia del criterio</div>
+    <h2>Qué lo vuelve 🟢 y qué lo vuelve 🔴</h2>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card" style="border-color:#1d5c3c"><h3 style="color:var(--verde)">🟢 VIABLE requiere todo</h3>
+        <ul style="margin-bottom:0">
+          <li>Puntaje ponderado ≥ 85</li>
+          <li>Muestra ≥ 20 inmuebles válidos</li>
+          <li>Cobertura del costo ≥ 100%</li>
+          <li><b>Datos legales medidos</b> en el RPP</li>
+          <li><b>Competencia medida</b> con conteo real</li>
+        </ul></div>
+      <div class="card" style="border-color:#6b5a25"><h3 style="color:var(--amarillo)">🟡 hoy estamos aquí</h3>
+        <p style="margin:0">Puntaje 90 y plan que cubre el costo, con dos criterios duros sin medir. La zona no se descarta: se condiciona. Nada de local, personal ni publicidad de apertura hasta cerrarlos.</p></div>
+      <div class="card" style="border-color:#6e2b2b"><h3 style="color:#ffb3b3">🔴 NO VIABLE</h3>
+        <ul style="margin-bottom:0">
+          <li>Cualquier criterio en rojo</li>
+          <li>Certeza registral &lt; 60% de la muestra</li>
+          <li>Participación requerida &gt; 30% <b>y</b> cobertura &lt; 70%</li>
+        </ul></div>
+    </div>
+    <p class="fuente">Hoy la participación requerida es 1.9%: el umbral rojo del 30% queda lejísimos. El riesgo de esta zona <b>nunca fue el precio</b>.</p>
+  </section>
+
+  <!-- 14 · PLAN -->
+  <section class="slide">
+    <div class="eyebrow">Ruta de las 12 semanas</div>
+    <h2>Plan de trabajo de Fase 0</h2>
+    <div class="grid g4" style="margin-top:20px">
+      <div class="card"><h3>Semanas 1–3</h3><b>Territorio y datos</b>
+        <ul style="margin:8px 0 0 18px;font-size:16px"><li>Vértices WGS84 y conteo de predios (SIG Catastro)</li><li>Confirmar las 5,500 propiedades</li><li>Zonificación predio por predio</li><li>Conteo DENUE a 1.5 km</li></ul></div>
+      <div class="card" style="border-color:#6b5a25"><h3>Semanas 3–7 · crítica</h3><b>Certeza jurídica</b>
+        <ul style="margin:8px 0 0 18px;font-size:16px"><li>20 inmuebles priorizados</li><li>Folio real, titular y gravámenes en RPP</li><li>Titular registral vs. poseedor</li><li>Estatus de polígonos DGRT/CORETT</li></ul></div>
+      <div class="card"><h3>Semanas 6–10</h3><b>Precio real</b>
+        <ul style="margin:8px 0 0 18px;font-size:16px"><li>Ajuste oferta → cierre (OVICA / Índice SHF)</li><li>Muestreo balanceado en los 3 portales</li><li>Reprecio de bandas y prueba de piso</li></ul></div>
+      <div class="card"><h3>Semanas 8–12</h3><b>Local y decisión</b>
+        <ul style="margin:8px 0 0 18px;font-size:16px"><li>5 locales sobre Calz. Desierto de los Leones / Av. Hidalgo</li><li>Verificar agua, drenaje y pendiente</li><li>Plan de 300 puertas (casco + medio-alto)</li><li>Junta go / no-go</li></ul></div>
+    </div>
+    <p class="fuente">Todo gasto de apertura queda congelado hasta que la junta vea las dos condiciones cerradas.</p>
+  </section>
+
+  <!-- 15 · SUPUESTOS -->
+  <section class="slide">
+    <div class="eyebrow">Higiene de datos</div>
+    <h2>Supuestos declarados (no presentados como hechos)</h2>
+    <div class="grid g2" style="margin-top:16px">
+      <table>
+        <tr><td><span class="tag">SPA-01</span> 5,500 propiedades por oficina</td><td class="num">sin verificar en Catastro</td></tr>
+        <tr><td><span class="tag">SPA-02</span> Rotación 1.5% (banda 1.5–3%)</td><td class="num">referencia</td></tr>
+        <tr><td><span class="tag">SPA-03</span> Captación de la oficina 10%</td><td class="num">meta operativa</td></tr>
+        <tr><td><span class="tag">SPA-04</span> Comisión 6% sin IVA</td><td class="num">modelo</td></tr>
+        <tr><td><span class="tag">SPA-05</span> Precios de oferta</td><td class="num">sin factor de cierre</td></tr>
+      </table>
+      <table>
+        <tr><td><span class="tag">SPA-06</span> Competencia = 30 marcas</td><td class="num">piso</td></tr>
+        <tr><td><span class="tag">SPA-07</span> Opex $120k · buffer $144k · alto $160k</td><td class="num">modelo</td></tr>
+        <tr><td><span class="tag">SPA-08</span> Colchón 12 meses = $1,728,000</td><td class="num">supuesto</td></tr>
+        <tr><td><span class="tag">SPA-09</span> Muestra puntual al 2-oct-2026</td><td class="num">sin serie histórica</td></tr>
+        <tr><td><span class="tag">SPA-10</span> Sin terrenos, rentas, USD, remates ni cesiones</td><td class="num">filtro Fase 0</td></tr>
+      </table>
+    </div>
+    <div class="card" style="margin-top:16px"><h3>Regla de la casa</h3>
+      <p style="margin:0">Ninguna cifra de mercado se inventa ni se estima “a ojo”. Lo que no está medido se marca <b>SIN MEDIR</b> con la fuente oficial para medirlo. Cualquier conclusión sin fuente es una opinión, y no entra a este expediente.</p></div>
+  </section>
+
+  <!-- 16 · DECISIÓN -->
+  <section class="slide">
+    <div class="eyebrow">Lo que se pide a la junta</div>
+    <h2>Decisión solicitada</h2>
+    <div class="grid g3" style="margin-top:22px">
+      <div class="card" style="border-color:#1d5c3c"><h3 style="color:var(--verde)">Autorizar</h3>
+        <ul style="margin-bottom:0">
+          <li>20 consultas de folio real en el RPP CDMX</li>
+          <li>Conteo DENUE + recorrido físico de competencia</li>
+          <li>Levantamiento de vértices y conteo de predios en Catastro</li>
+        </ul></div>
+      <div class="card" style="border-color:#6b5a25"><h3 style="color:var(--amarillo)">Mantener congelado</h3>
+        <ul style="margin-bottom:0">
+          <li>Firma de local y obra</li>
+          <li>Contratación de personal</li>
+          <li>Publicidad de apertura y mobiliario</li>
+        </ul></div>
+      <div class="card"><h3>Volver a sesión con</h3>
+        <ul style="margin-bottom:0">
+          <li>% de certeza jurídica medido</li>
+          <li>Conteo real de oficinas a 1.5 km</li>
+          <li>Dictamen recalculado: 🟢 / 🟡 / 🔴</li>
+        </ul></div>
+    </div>
+    <div class="badge" style="margin-top:26px">🟡 VIABLE CON CONDICIONES <span class="puntaje">90/100 · margen estimado $619,125/mes · el riesgo es registral, no de mercado</span></div>
+    <p class="fuente">Una vez cerradas las verificaciones, el expediente se recarga y el dictamen se recalcula automáticamente. Sin fecha de caducidad: la muestra está fechada el 2-oct-2026.</p>
+  </section>
+
+  <!-- 17 · FUENTES -->
+  <section class="slide">
+    <div class="eyebrow">Respaldo</div>
+    <h2>Cada número tiene su fuente</h2>
+    <div class="grid g2" style="margin-top:18px">
+      <div class="card"><h3>Dentro del repositorio</h3>
+        <ul style="margin-bottom:0">
+          <li><span class="tag">expedientes/san-bartolo-ameyalco.json</span> — 70 avisos con URL</li>
+          <li><span class="tag">docs/anexo-datos-sba-ao-04.md</span> — criterios, segmentos, sensibilidad y tabla de avisos</li>
+          <li><span class="tag">docs/analisis-san-bartolo-ameyalco.md</span> — informe Fase 0</li>
+          <li><span class="tag">src/engine.js</span> — motor de cálculo auditado (140 pruebas)</li>
+        </ul></div>
+      <div class="card"><h3>Fuentes oficiales para cerrar pendientes</h3>
+        <ul style="margin-bottom:0">
+          <li>RPP CDMX — folio real, titular y gravámenes</li>
+          <li>SIG CDMX Catastro — predios y valores de suelo · OVICA</li>
+          <li>DENUE (SCIAN 5311) — oficinas inmobiliarias a 1.5 km</li>
+          <li>Índice SHF — precios de vivienda · DOF 18/11/1994 y 05/10/1994</li>
+        </ul></div>
+    </div>
+    <p class="fuente">AnalisisZonaTec · herramienta de cálculo y expediente. No constituye asesoría financiera, legal ni registral. Los dictámenes son tan confiables como los datos capturados y sus fuentes.</p>
+  </section>
+
+</div>
+
+<div class="nav">
+  <button id="antes" type="button" aria-label="Diapositiva anterior">◀ Anterior</button>
+  <span class="contador" id="contador">1 / 17</span>
+  <button id="despues" type="button" aria-label="Diapositiva siguiente">Siguiente ▶</button>
+</div>
+
+<script>
+  const slides = [...document.querySelectorAll('.slide')];
+  const contador = document.getElementById('contador');
+  const progreso = document.getElementById('progreso');
+  let i = 0;
+  const pintar = () => {
+    slides.forEach((s, n) => s.classList.toggle('activa', n === i));
+    contador.textContent = `${i + 1} / ${slides.length}`;
+    progreso.style.width = `${((i + 1) / slides.length) * 100}%`;
+    window.scrollTo(0, 0);
+  };
+  const mover = (d) => { i = Math.min(slides.length - 1, Math.max(0, i + d)); pintar(); };
+  document.getElementById('antes').onclick = () => mover(-1);
+  document.getElementById('despues').onclick = () => mover(1);
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowRight', 'ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); mover(1); }
+    if (['ArrowLeft', 'ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); mover(-1); }
+    if (e.key === 'Home') { i = 0; pintar(); }
+    if (e.key === 'End') { i = slides.length - 1; pintar(); }
+  });
+  pintar();
+</script>
+</body>
+</html>
