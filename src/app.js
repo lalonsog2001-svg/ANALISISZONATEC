@@ -679,22 +679,7 @@ document.addEventListener('click', (e) => {
       break;
     }
     case 'cargar-expediente': {
-      const archivo = objetivo.dataset.archivo;
-      fetch(`expedientes/${archivo}`, { cache: 'no-store' })
-        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-        .then((d) => {
-          if (!Array.isArray(d.zonas) || !d.zonas.length) throw new Error('El expediente no contiene zonas.');
-          const nuevas = d.zonas.filter((z) => !estado.zonas.some((x) => x.id === z.id));
-          estado.zonas.push(...nuevas);
-          estado.zonaId = nuevas[0]?.id || estado.zonaId;
-          if (d.umbrales) estado.umbrales = { ...UMBRALES_DEFAULT, ...d.umbrales };
-          if (d.escenario) estado.escenario = d.escenario;
-          estado.comparar = estado.zonas.slice(0, 3).map((z) => z.id);
-          estado.vista = 'detalle';
-          guardar(); render();
-          toast(nuevas.length ? `Expediente cargado: ${nuevas.map((z) => z.nombre).join(', ')}` : 'Ese expediente ya estaba cargado.');
-        })
-        .catch((err) => toast(`No se pudo cargar el expediente: ${err.message}`));
+      cargarExpediente(objetivo.dataset.archivo);
       break;
     }
     case 'demo': {
@@ -917,6 +902,27 @@ function zonaDemo() {
 
 /* Expedientes publicados en el repositorio (opcional). Si no existen, la app
  * funciona igual: el usuario captura o importa su propio JSON. */
+async function cargarExpediente(archivo, { silencioso = false } = {}) {
+  try {
+    const r = await fetch(`expedientes/${archivo}`, { cache: 'no-store' });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const d = await r.json();
+    if (!Array.isArray(d.zonas) || !d.zonas.length) throw new Error('El expediente no contiene zonas.');
+    const nuevas = d.zonas.filter((z) => !estado.zonas.some((x) => x.id === z.id));
+    estado.zonas.push(...nuevas);
+    estado.zonaId = nuevas[0]?.id || estado.zonaId;
+    if (d.umbrales) estado.umbrales = { ...UMBRALES_DEFAULT, ...d.umbrales };
+    if (d.escenario) estado.escenario = d.escenario;
+    estado.comparar = estado.zonas.slice(0, 3).map((z) => z.id);
+    estado.vista = 'detalle';
+    guardar(); render();
+    if (!silencioso) toast(nuevas.length ? `Expediente cargado: ${nuevas.map((z) => z.nombre).join(', ')}` : 'Ese expediente ya estaba cargado.');
+  } catch (err) {
+    if (!silencioso) toast(`No se pudo cargar el expediente: ${err.message}`);
+    else throw err;
+  }
+}
+
 async function cargarExpedientesPublicados() {
   try {
     const r = await fetch('expedientes/index.json', { cache: 'no-store' });
@@ -925,6 +931,12 @@ async function cargarExpedientesPublicados() {
     if (Array.isArray(d.expedientes) && d.expedientes.length) {
       estado.expedientes = d.expedientes;
       render();
+      /* Primera visita: la app abre directamente con el caso real del repositorio.
+       * Si el usuario ya tiene zonas guardadas, se respeta su trabajo. */
+      if (!estado.zonas.length && !cargar()) {
+        await cargarExpediente(d.expedientes[0].archivo, { silencioso: true });
+        toast(`Caso real cargado: ${d.expedientes[0].nombre}. Precios de oferta y certeza jurídica sin medir: léelo en el dictamen.`);
+      }
     }
   } catch { /* servido sin carpeta de expedientes: se ignora */ }
 }

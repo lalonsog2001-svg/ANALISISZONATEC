@@ -7,7 +7,7 @@
   "scripts": {
     "start": "python3 -m http.server 8000 --bind 0.0.0.0",
     "test": "node tests/engine.test.mjs && node tests/ui.smoke.mjs",
-    "verificar": "node scripts/verificar-navegador.mjs",
+    "verificar": "node scripts/verificar-navegador.mjs && node scripts/verificar-carga-expediente.mjs",
     "docs": "node scripts/generar-docs.mjs",
     "analizar": "node scripts/analizar-zona.mjs"
   },

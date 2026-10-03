@@ -25,7 +25,7 @@ Esta herramienta introduce la variable que falta — **captación de la oficina*
 npm start          # sirve la app en http://localhost:8000 (bind 0.0.0.0)
 npm test           # 108 pruebas: motor, parser y humo de interfaz (sin dependencias)
 npm run docs       # regenera docs/plan-maestro.md, modelo-financiero.md y fuentes.md
-npm run verificar  # 16 pruebas en DOM real con jsdom (requiere: npm i -D jsdom)
+npm run verificar  # 22 pruebas en DOM real con jsdom, incluye la carga del expediente (requiere: npm i -D jsdom)
 npm run analizar   # analiza expedientes/san-bartolo-ameyalco.json y regenera su anexo de datos
 ```
 
@@ -73,6 +73,7 @@ node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json --verificar
 | `src/fuentes.js` | Fuentes verificables y ruta de verificación de cada criterio |
 | `tests/` | Pruebas del motor, del parser y humo de la interfaz (sin dependencias) |
 | `scripts/verificar-navegador.mjs` | Verificación opcional sobre el DOM real de `index.html` con jsdom |
+| `scripts/verificar-carga-expediente.mjs` | Comprueba que la app abre el expediente publicado y muestra el dictamen |
 | `scripts/analizar-zona.mjs` | Analiza un expediente real, genera el anexo de datos y audita que el informe cite las cifras del motor |
 | `scripts/generar-docs.mjs` | Genera la documentación desde el código para que no se desincronice |
 | `expedientes/` | Expedientes reales capturados (JSON con URL por inmueble) y el manifiesto que consume la interfaz |
