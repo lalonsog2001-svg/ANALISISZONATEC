@@ -5,8 +5,10 @@ Thumbs.db
 .idea/
 .vscode/
 
-# Copias autónomas de un solo archivo (se regeneran con: npm run copia)
+# Copias autónomas de un solo archivo (se regeneran con: npm run copia).
+# dist/ se excluye de los respaldos del workspace; copias/ sí persiste.
 dist/
+copias/
 
 # Node (el proyecto no tiene dependencias, pero por si se agregan)
 node_modules/

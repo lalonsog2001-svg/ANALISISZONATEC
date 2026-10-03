@@ -10,7 +10,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
 
-const ruta = resolve(process.argv[2] || 'dist/analisiszonatec-san-bartolo-ameyalco.html');
+const ruta = resolve(process.argv[2] || 'copias/analisiszonatec-san-bartolo-ameyalco.html');
 if (!existsSync(ruta)) {
   console.error(`❌ No existe ${ruta}. Genera la copia con: node scripts/construir-copia.mjs`);
   process.exit(1);

@@ -21,7 +21,9 @@ const expediente = JSON.parse(readFileSync(rutaExpediente, 'utf8'));
 const indice = JSON.parse(readFileSync(rutaIndice, 'utf8'));
 const nombreArchivo = basename(rutaExpediente);
 const slug = nombreArchivo.replace(/\.json$/, '');
-const salida = `dist/analisiszonatec-${slug}.html`;
+/* `copias/` y NO `dist/`: dist/ se excluye de los respaldos del workspace y la
+ * copia desaparece entre sesiones (el usuario se queda con un 404). */
+const salida = `copias/analisiszonatec-${slug}.html`;
 
 /* Orden de dependencias del aplanado. */
 const MODULOS = ['src/model.js', 'src/fuentes.js', 'src/engine.js', 'src/plan.js', 'src/parser.js', 'src/app.js'];
@@ -76,7 +78,7 @@ html = html
     () => '<p class="brand-sub">Director de Apertura y Operaciones · Franquicia inmobiliaria · CDMX · <strong>copia autónoma</strong></p>',
   );
 
-mkdirSync('dist', { recursive: true });
+mkdirSync('copias', { recursive: true });
 writeFileSync(salida, html);
 
 const kb = (n) => `${(n / 1024).toFixed(0)} KB`;
