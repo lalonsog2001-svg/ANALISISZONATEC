@@ -5,6 +5,9 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Copias autónomas de un solo archivo (se regeneran con: npm run copia)
+dist/
+
 # Node (el proyecto no tiene dependencias, pero por si se agregan)
 node_modules/
 npm-debug.log*

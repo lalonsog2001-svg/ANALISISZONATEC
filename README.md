@@ -27,6 +27,7 @@ npm test           # 108 pruebas: motor, parser y humo de interfaz (sin dependen
 npm run docs       # regenera docs/plan-maestro.md, modelo-financiero.md y fuentes.md
 npm run verificar  # 22 pruebas en DOM real con jsdom, incluye la carga del expediente (requiere: npm i -D jsdom)
 npm run analizar   # analiza expedientes/san-bartolo-ameyalco.json y regenera su anexo de datos
+npm run copia      # genera dist/analisiszonatec-<expediente>.html: un solo archivo, sin servidor ni red
 ```
 
 La aplicación **no tiene dependencias**: es HTML + CSS + JavaScript nativo (módulos ES) y funciona con cualquier servidor estático; `npm test` corre sin instalar nada. `npm run verificar` es opcional y usa `jsdom` (única devDependency) para cargar el `index.html` real, ejecutar la app e interactuar con eventos de navegador.
@@ -61,6 +62,16 @@ node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json            
 node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json --verificar docs/analisis-san-bartolo-ameyalco.md
 ```
 
+## Copia autónoma de un solo archivo
+
+Para llevarte el caso a una junta (o abrirlo sin servidor, sin red y sin build):
+
+```bash
+npm run copia     # → dist/analisiszonatec-san-bartolo-ameyalco.html
+```
+
+Ese HTML **trae embebidos la app, los estilos y el expediente**: se abre con doble clic, funciona `file://` y no hace ninguna petición de red (`fetch` se sustituye por los datos embebidos). Se puede mandar por correo o WhatsApp y se ve igual en cualquier navegador. La verificación `node scripts/verificar-copia.mjs` carga la copia como `file://` y comprueba que el dictamen esté a la vista.
+
 ## Estructura
 
 | Archivo | Contenido |
@@ -74,6 +85,8 @@ node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json --verificar
 | `tests/` | Pruebas del motor, del parser y humo de la interfaz (sin dependencias) |
 | `scripts/verificar-navegador.mjs` | Verificación opcional sobre el DOM real de `index.html` con jsdom |
 | `scripts/verificar-carga-expediente.mjs` | Comprueba que la app abre el expediente publicado y muestra el dictamen |
+| `scripts/construir-copia.mjs` | Genera la copia autónoma de un solo archivo HTML |
+| `scripts/verificar-copia.mjs` | Carga esa copia como `file://` y comprueba que el caso esté a la vista |
 | `scripts/analizar-zona.mjs` | Analiza un expediente real, genera el anexo de datos y audita que el informe cite las cifras del motor |
 | `scripts/generar-docs.mjs` | Genera la documentación desde el código para que no se desincronice |
 | `expedientes/` | Expedientes reales capturados (JSON con URL por inmueble) y el manifiesto que consume la interfaz |
