@@ -23,9 +23,10 @@ Esta herramienta introduce la variable que falta — **captación de la oficina*
 
 ```bash
 npm start          # sirve la app en http://localhost:8000 (bind 0.0.0.0)
-npm test           # 103 pruebas: motor, parser y humo de interfaz (sin dependencias)
+npm test           # 108 pruebas: motor, parser y humo de interfaz (sin dependencias)
 npm run docs       # regenera docs/plan-maestro.md, modelo-financiero.md y fuentes.md
 npm run verificar  # 16 pruebas en DOM real con jsdom (requiere: npm i -D jsdom)
+npm run analizar   # analiza expedientes/san-bartolo-ameyalco.json y regenera su anexo de datos
 ```
 
 La aplicación **no tiene dependencias**: es HTML + CSS + JavaScript nativo (módulos ES) y funciona con cualquier servidor estático; `npm test` corre sin instalar nada. `npm run verificar` es opcional y usa `jsdom` (única devDependency) para cargar el `index.html` real, ejecutar la app e interactuar con eventos de navegador.
@@ -41,6 +42,25 @@ Flujo de trabajo de la Fase 0:
 5. **Leer el dictamen** → KPIs, criterios ponderados, bloqueos, condiciones y qué verificar a continuación.
 6. **Comparar** 2–3 polígonos candidatos y **copiar/exportar el expediente**.
 
+## Caso aplicado: San Bartolo Ameyalco (Álvaro Obregón) — polígono AO-04
+
+El repositorio incluye un expediente real y su estudio de Fase 0, capturado el 2-oct-2026 desde portales (con URL por inmueble):
+
+| Archivo | Contenido |
+| --- | --- |
+| `docs/analisis-san-bartolo-ameyalco.md` | **Informe Fase 0 completo**: fase actual, acciones de 12 semanas, KPIs, semáforo y alerta de riesgo |
+| `docs/anexo-datos-sba-ao-04.md` | Anexo generado por el motor: criterios, segmentación por banda, sensibilidad y la tabla de los 70 avisos con URL |
+| `expedientes/san-bartolo-ameyalco.json` | Expediente (70 anuncios, 59 válidos) que alimenta al motor y a la app |
+| `expedientes/index.json` | Manifiesto que la app lee para ofrecer «Cargar expediente» desde la vista de zonas |
+| `scripts/analizar-zona.mjs` | Corre el motor sobre un expediente, escribe el anexo y audita el informe |
+
+**Dictamen AO-04 (2-oct-2026): 🟡 VIABLE CON CONDICIONES — 90/100.** Mediana $18,500,000, comisión $1,110,000, cobertura 530%, margen $619,125/mes, participación requerida 1.9%. Dos condiciones abiertas: **certeza jurídica sin medir** (0 de 59 folios verificados en el RPP) y **competencia medida solo como piso** (30 marcas con inventario publicado, no el conteo de oficinas a 1.5 km).
+
+```bash
+node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json                       # motor + anexo
+node scripts/analizar-zona.mjs expedientes/san-bartolo-ameyalco.json --verificar docs/analisis-san-bartolo-ameyalco.md
+```
+
 ## Estructura
 
 | Archivo | Contenido |
@@ -53,7 +73,9 @@ Flujo de trabajo de la Fase 0:
 | `src/fuentes.js` | Fuentes verificables y ruta de verificación de cada criterio |
 | `tests/` | Pruebas del motor, del parser y humo de la interfaz (sin dependencias) |
 | `scripts/verificar-navegador.mjs` | Verificación opcional sobre el DOM real de `index.html` con jsdom |
+| `scripts/analizar-zona.mjs` | Analiza un expediente real, genera el anexo de datos y audita que el informe cite las cifras del motor |
 | `scripts/generar-docs.mjs` | Genera la documentación desde el código para que no se desincronice |
+| `expedientes/` | Expedientes reales capturados (JSON con URL por inmueble) y el manifiesto que consume la interfaz |
 | `docs/` | Plan Maestro, modelo financiero, fuentes, metodología y prompt completo del agente |
 
 ## Los 8 criterios del dictamen
@@ -69,7 +91,14 @@ Flujo de trabajo de la Fase 0:
 | Trazabilidad (fuente con URL) | 1 | ≥ 80% | < 50% |
 | Colchón de capital | 1 | ≥ 12 meses | < 6 meses |
 
-Un criterio en rojo **bloquea** el dictamen. La luz verde exige puntaje ponderado ≥ 85, muestra suficiente **y** cobertura del costo ≥ 100%: si el plan asumido pierde dinero, el dictamen nunca es 🟢, aunque el resto esté bien.
+Un criterio en rojo **bloquea** el dictamen. La luz verde exige puntaje ponderado ≥ 85, muestra suficiente, cobertura del costo ≥ 100% **y que los criterios duros estén medidos**: si el plan asumido pierde dinero, el dictamen nunca es 🟢, aunque el resto esté bien.
+
+**No medido ≠ medido y bajo.** Dos etiquetas de origen impiden que un dato ausente se disfrace de dato malo (o de dato bueno):
+
+| Etiqueta | Valores | Efecto |
+| --- | --- | --- |
+| `certezaFuente` | `muestra` · `manual` · `sin_medir` | Sin folios verificados el criterio queda 🟡 con el texto «SIN MEDIR» y el dictamen no puede ser 🟢. Un porcentaje tecleado a mano se marca como «no medido en la muestra». |
+| `competidoresFuente` | `conteo` · `piso` | Un `piso` (marcas con inventario publicado) queda 🟡: no alcanza para verde ni para rojo. Solo un conteo real a 1.5 km puede moverlo. |
 
 Dos matices de diseño que evitan dictámenes engañosos:
 
@@ -80,7 +109,7 @@ Los umbrales son criterio operativo propuesto (no documentación oficial) y son 
 
 ## Límites declarados
 
-- La app **no descarga datos de mercado**. No se conecta a Inmuebles24, Propiedades.com, Lamudi, RPP, Catastro ni INEGI: no descarga ni estima precios. Toda cifra de mercado la captura el usuario con su fuente.
+- La app **no descarga datos de mercado** desde la red de portales; solo, si el servidor expone la carpeta `expedientes/`, ofrece cargar los expedientes publicados en este repositorio (JSON con URL por inmueble). No se conecta a Inmuebles24, Propiedades.com, Lamudi, RPP, Catastro ni INEGI: no descarga ni estima precios. Toda cifra de mercado la captura el usuario con su fuente.
 - Los precios de portal son **precios de oferta**, no de cierre: aplica descuento de negociación antes de decidir.
 - La **captación de la oficina en el año 1 (10%)** y el **colchón de 12 meses** son supuestos de esta herramienta, no datos del franquiciador ni de TECNOCASA. Están marcados como `SP1` y son editables.
 - Los montos de regalía y fondo publicitario ($25k–$35k) provienen del modelo del franquiciatario; la única fuente válida para confirmarlos es el contrato de franquicia vigente.

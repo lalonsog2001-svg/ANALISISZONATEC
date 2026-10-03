@@ -210,6 +210,78 @@ t('participación requerida > 30% = rojo estructural', () => {
   es(dD.semaforo.id, 'rojo');
 });
 
+console.log('\n── 5c. Certeza jurídica: no medido ≠ medido y bajo ──');
+
+t('sin verificación registral el criterio queda PENDIENTE (amarillo), no en cero', () => {
+  const z = nuevaZona({
+    nombre: 'Sin verificar', rotacionPct: 1.5, participacionMercadoPct: 10, competidoresNum: 5, colchonMeses: 12,
+    propiedades: propsB.map((p) => ({ ...p, escriturado: 'no_verificado' })),
+  });
+  const d = dictaminar(z);
+  eq(d.kpis.certezaFuente, 'sin_medir');
+  eq(d.kpis.certezaPct, 0);
+  const c = d.criterios.find((x) => x.id === 'certeza');
+  es(c.estado, 'amarillo');
+  if (!c.mensaje.includes('No medido')) throw new Error(`mensaje: ${c.mensaje}`);
+  if (!c.valorTexto.includes('SIN MEDIR')) throw new Error(`valorTexto: ${c.valorTexto}`);
+  if (d.semaforo.id === 'verde') throw new Error('no puede haber verde con certeza sin medir');
+});
+
+t('un porcentaje declarado a mano se marca como no medido en la muestra', () => {
+  const z = nuevaZona({
+    nombre: 'Declarado', certezaJuridicaPct: 90, rotacionPct: 2.25, participacionMercadoPct: 12,
+    competidoresNum: 5, colchonMeses: 12, propiedades: propsB.map((p) => ({ ...p, escriturado: 'no_verificado' })),
+  });
+  const d = dictaminar(z);
+  eq(d.kpis.certezaFuente, 'manual');
+  aprox(d.kpis.certezaPct, 90);
+  const c = d.criterios.find((x) => x.id === 'certeza');
+  es(c.estado, 'verde');
+  if (!c.valorTexto.includes('no medido en la muestra')) throw new Error(`valorTexto: ${c.valorTexto}`);
+});
+
+t('los duplicados de publicación salen de la muestra', () => {
+  const z = nuevaZona({
+    nombre: 'Con duplicados',
+    propiedades: [
+      nuevaPropiedad({ precio: 4_000_000, estado: 'valido', fuenteUrl: 'https://x.com/1' }),
+      nuevaPropiedad({ precio: 4_000_000, estado: 'duplicado', fuenteUrl: 'https://x.com/2' }),
+    ],
+  });
+  const k = computarKpis(z);
+  eq(k.nValidas, 1);
+  eq(k.nExcluidas, 1);
+  eq(k.motivosExclusion['Duplicado de otra publicación'], 1);
+});
+
+console.log('\n── 5d. Competencia: piso documentado ≠ conteo a 1.5 km ──');
+
+t('un piso de marcas detectadas deja el criterio en amarillo (ni verde ni rojo)', () => {
+  const z = nuevaZona({
+    nombre: 'Piso competencia', rotacionPct: 2.25, participacionMercadoPct: 10,
+    competidoresNum: 3, competidoresFuente: 'piso', colchonMeses: 12,
+    propiedades: propsB.map((p) => ({ ...p, escriturado: 'si' })),
+  });
+  const d = dictaminar(z);
+  eq(d.kpis.competidoresFuente, 'piso');
+  const c = d.criterios.find((x) => x.id === 'competencia');
+  es(c.estado, 'amarillo');
+  if (!c.valorTexto.includes('piso documentado')) throw new Error(`valorTexto: ${c.valorTexto}`);
+  if (!c.mensaje.includes('PISO')) throw new Error(`mensaje: ${c.mensaje}`);
+  if (d.semaforo.id === 'verde') throw new Error('un piso de competencia no alcanza para verde');
+});
+
+t('sin marca de fuente, un número capturado se trata como conteo real', () => {
+  const z = nuevaZona({
+    nombre: 'Conteo', rotacionPct: 2.25, participacionMercadoPct: 10,
+    competidoresNum: 3, colchonMeses: 12,
+    propiedades: propsB.map((p) => ({ ...p, escriturado: 'si' })),
+  });
+  const d = dictaminar(z);
+  eq(d.kpis.competidoresFuente, 'conteo');
+  es(d.criterios.find((x) => x.id === 'competencia').estado, 'verde');
+});
+
 console.log('\n── 6. Expediente y supuestos ──');
 
 t('el resumen incluye el semáforo del dictamen', () => {

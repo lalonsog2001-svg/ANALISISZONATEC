@@ -163,12 +163,18 @@ export function computarKpis(zona = {}, umbrales = UMBRALES_DEFAULT, escenarioId
     ? (participacionMercadoPct - participacionRequeridaPct) / participacionMercadoPct * 100
     : 0;
 
-  /* --- Certeza jurídica --- */
+  /* --- Certeza jurídica ---
+   * Distinguir "no medido" de "medido y bajo": son hechos distintos y no deben
+   * producir el mismo mensaje. Si ningún inmueble tiene estatus verificado y el
+   * usuario no aportó un porcentaje, la certeza está PENDIENTE, no en cero. */
   const conEstatus = propiedades.filter((p) => p.escriturado && p.escriturado !== 'no_verificado');
   const escriturados = conEstatus.filter((p) => p.escriturado === 'si').length;
-  const certezaPct = conEstatus.length
+  const certezaManual = num(zona.certezaJuridicaPct);
+  const certezaFuente = conEstatus.length ? 'muestra' : (String(zona.certezaJuridicaPct ?? '') !== '' ? 'manual' : 'sin_medir');
+  const certezaPct = certezaFuente === 'muestra'
     ? (escriturados / conEstatus.length) * 100
-    : num(zona.certezaJuridicaPct);
+    : certezaFuente === 'manual' ? certezaManual : 0;
+  const nConEstatus = conEstatus.length;
 
   /* --- Trazabilidad --- */
   const conFuente = validas.filter((p) => String(p.fuenteUrl || '').trim().length > 6).length;
@@ -178,6 +184,12 @@ export function computarKpis(zona = {}, umbrales = UMBRALES_DEFAULT, escenarioId
   const competidores = zona.competidoresNum == null || zona.competidoresNum === ''
     ? null
     : num(zona.competidoresNum);
+  /* Un conteo de oficinas en 1.5 km y una lista de marcas con inventario publicado
+   * en todo el polígono no son la misma medida. Si el número es un PISO documentado
+   * (marcas detectadas), el criterio no puede ponerse verde ni rojo: queda pendiente. */
+  const competidoresFuente = competidores == null
+    ? 'sin_medir'
+    : (zona.competidoresFuente === 'piso' ? 'piso' : 'conteo');
   const ventasPorCompetidor = competidores != null && competidores > 0
     ? ventasAnualesZona / competidores
     : null;
@@ -225,7 +237,7 @@ export function computarKpis(zona = {}, umbrales = UMBRALES_DEFAULT, escenarioId
     ingresoMensualEstimado, ingresoAnualEstimado, costoAnual,
     coberturaPct, margenMensualEstimado, margenAnualEstimado, holguraParticipacionPct,
     // cualitativos
-    certezaPct, trazabilidadPct, competidores, ventasPorCompetidor, colchonMeses,
+    certezaPct, certezaFuente, nConEstatus, trazabilidadPct, competidores, competidoresFuente, ventasPorCompetidor, colchonMeses,
     escalera, umbrales: u,
   };
 }
@@ -321,27 +333,35 @@ export function evaluarCriterios(kpis) {
         : `Con la captación asumida la oficina pierde ${mxn(Math.abs(kpis.margenMensualEstimado))} al mes y la zona exige ${Number.isFinite(pr) ? pct(pr) : 'una participación no calculable'} del mercado: no hay ajuste de supuesto que salve este polígono.`,
   }));
 
-  /* 5. Certeza jurídica */
+  /* 5. Certeza jurídica — no medido ≠ medido y bajo */
+  const sinMedir = kpis.certezaFuente === 'sin_medir';
   c.push(criterio({
     id: 'certeza',
     nombre: 'Certeza jurídica (% escriturado / RPP)',
     valor: kpis.certezaPct,
-    valorTexto: `${pct(kpis.certezaPct)} de la muestra con estatus registral verificado`,
+    valorTexto: sinMedir
+      ? `SIN MEDIR — 0 de ${kpis.nValidas} inmuebles verificados en el RPP`
+      : `${pct(kpis.certezaPct)} de ${kpis.nConEstatus} inmuebles con estatus verificado${kpis.certezaFuente === 'manual' ? ' (porcentaje declarado por el usuario, no medido en la muestra)' : ''}`,
     umbral: `≥ ${u.certezaVerdePct}%`,
     peso: PESOS.certeza,
-    estado: kpis.certezaPct >= u.certezaVerdePct ? 'verde' : kpis.certezaPct >= u.certezaAmarillaPct ? 'amarillo' : 'rojo',
-    mensaje: kpis.certezaPct >= u.certezaVerdePct
-      ? 'Zona con tenencia regular: operable con el filtro estándar de captación.'
-      : kpis.certezaPct >= u.certezaAmarillaPct
-        ? `Hay núcleos de irregularidad (${pct(100 - kpis.certezaPct)} sin acreditar): verificación registral individual antes de invertir en captación.`
-        : `Riesgo registral alto: ${pct(100 - kpis.certezaPct)} de la muestra sin certeza. No se construye cartera con inventario no escriturable.`,
+    estado: sinMedir ? 'amarillo' : kpis.certezaPct >= u.certezaVerdePct ? 'verde' : kpis.certezaPct >= u.certezaAmarillaPct ? 'amarillo' : 'rojo',
+    mensaje: sinMedir
+      ? 'No medido: no es que la zona tenga 0% de certeza, es que nadie ha verificado ni un folio real. Este criterio no puede darse por bueno sin datos: el anexo de fuentes indica cómo medirlo. Sin esta verificación no se abre oficina, porque cada mes de operación cuesta $144,000–$160,000.'
+      : kpis.certezaPct >= u.certezaVerdePct
+        ? 'Zona con tenencia regular: operable con el filtro estándar de captación.'
+        : kpis.certezaPct >= u.certezaAmarillaPct
+          ? `Hay núcleos de irregularidad (${pct(100 - kpis.certezaPct)} sin acreditar): verificación registral individual antes de invertir en captación.`
+          : `Riesgo registral alto: ${pct(100 - kpis.certezaPct)} de la muestra sin certeza. No se construye cartera con inventario no escriturable.`,
   }));
 
   /* 6. Competencia */
   const comp = kpis.competidores;
   let estadoComp = 'amarillo';
   let msgComp = 'Sin conteo de competencia. Cárgalo con DENUE (SCIAN 5311) para cerrar el criterio.';
-  if (comp != null) {
+  if (comp != null && kpis.competidoresFuente === 'piso') {
+    estadoComp = 'amarillo';
+    msgComp = `${comp} marcas con inventario publicado en el polígono: es un PISO (cuántas agencias distintas anuncian), no el conteo de oficinas dentro de 1.5 km. No alcanza para verde ni para rojo: falta el conteo DENUE (SCIAN 5311) y el recorrido físico.`;
+  } else if (comp != null) {
     if (comp <= u.competidoresVerde) { estadoComp = 'verde'; msgComp = `${comp} oficinas/agencias en el radio de 1.5 km: hay espacio para una operación nueva. Confirma con recorrido físico.`; }
     else if (comp <= u.competidoresAmarillo) { estadoComp = 'amarillo'; msgComp = `${comp} competidores en 1.5 km: zona disputada. Compite con posicionamiento de marca y captación puerta a puerta, no con precio.`; }
     else { estadoComp = 'rojo'; msgComp = `${comp} competidores en 1.5 km: saturación. Exige un diferenciador verificable antes de abrir.`; }
@@ -352,7 +372,9 @@ export function evaluarCriterios(kpis) {
     valor: comp,
     valorTexto: comp == null
       ? 'Sin dato capturado'
-      : `${comp} inmobiliarias activas${kpis.ventasPorCompetidor ? ` | ${kpis.ventasPorCompetidor.toFixed(1)} ventas/año por competidor si todos comparten el mercado` : ''}`,
+      : kpis.competidoresFuente === 'piso'
+        ? `${comp} marcas con inventario publicado (piso documentado, no es el conteo a 1.5 km)${kpis.ventasPorCompetidor ? ` | si todas comparten el mercado, ${kpis.ventasPorCompetidor.toFixed(1)} ventas/año por marca` : ''}`
+        : `${comp} inmobiliarias activas${kpis.ventasPorCompetidor ? ` | ${kpis.ventasPorCompetidor.toFixed(1)} ventas/año por competidor si todos comparten el mercado` : ''}`,
     umbral: `≤ ${u.competidoresVerde} verde | > ${u.competidoresAmarillo} rojo`,
     peso: PESOS.competencia, estado: estadoComp, mensaje: msgComp,
   }));
@@ -400,14 +422,20 @@ export function dictaminar(zona = {}, umbrales = UMBRALES_DEFAULT, escenarioId =
     (s, c) => s + c.peso * (c.estado === 'verde' ? 1 : c.estado === 'amarillo' ? 0.5 : 0), 0
   ) / ponderacionMax;
 
-  /* Regla de oro: no hay luz verde si el plan capturado pierde dinero. El verde
-   * exige puntaje alto, muestra suficiente Y cobertura del costo ≥ 100%. */
+  /* Regla de oro: no hay luz verde si el plan capturado pierde dinero, ni si
+   * queda algún criterio duro SIN MEDIR. La certeza jurídica no se puede dar por
+   * buena sin datos: abrir una oficina con título no verificado es exponerse a
+   * cartera invendible. */
   const planCubreCosto = kpis.coberturaPct >= 100;
+  const datosLegalesMedidos = kpis.certezaFuente !== 'sin_medir';
+  /* Tampoco hay verde con la competencia sin medir: un piso de marcas detectadas
+   * no dice cuántas oficinas operan en 1.5 km. */
+  const competenciaMedida = kpis.competidoresFuente === 'conteo';
 
   let semaforo;
   if (kpis.nValidas === 0) semaforo = SEMAFORO.sinDatos;
   else if (hayRojo) semaforo = SEMAFORO.rojo;
-  else if (puntaje >= 0.85 && kpis.nValidas >= kpis.umbrales.muestraMinima && planCubreCosto) semaforo = SEMAFORO.verde;
+  else if (puntaje >= 0.85 && kpis.nValidas >= kpis.umbrales.muestraMinima && planCubreCosto && datosLegalesMedidos && competenciaMedida) semaforo = SEMAFORO.verde;
   else semaforo = SEMAFORO.amarillo;
 
   const bloqueos = criterios.filter((c) => c.estado === 'rojo');

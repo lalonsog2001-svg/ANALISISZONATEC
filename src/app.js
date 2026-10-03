@@ -28,6 +28,7 @@ const estado = {
   comparar: [],
   edicion: null,       // id del inmueble en edición
   faseAbierta: 'f0',
+  expedientes: [],     // expedientes publicados en /expedientes (cargados por fetch)
 };
 
 function guardar() {
@@ -119,8 +120,21 @@ function vistaZonas() {
       <p>Una zona = un polígono de 5,500 propiedades. Captura la muestra de inmuebles con su fuente para emitir dictamen.</p>
       <p class="chico">¿Quieres ver cómo funciona? <button class="link" data-action="demo" type="button">Carga una zona de ejemplo</button> (datos ilustrativos, no son precios de mercado reales) o <button class="link" data-vista="plan" type="button">revisa el Plan de 12 meses</button>.</p>
     </div>`);
-    return h.join('');
   }
+  if (estado.expedientes.length) {
+    h.push(`<div class="seccion-titulo"><h2>Expedientes publicados en este repositorio</h2><span class="hint">capturas reales con URL por inmueble · se cargan en tu navegador</span></div>`);
+    h.push('<div class="grid grid-2">');
+    for (const e of estado.expedientes) {
+      h.push(`<div class="fuente">
+        <div class="fila"><h4>${esc(e.nombre)}</h4><span class="tipo-fuente tipo-portal">${esc(e.fecha || '')}</span></div>
+        <p>${esc(e.descripcion || '')}</p>
+        ${e.advertencia ? `<p class="muted">⚠️ ${esc(e.advertencia)}</p>` : ''}
+        <button class="btn btn-primario mt" data-action="cargar-expediente" data-archivo="${esc(e.archivo)}" type="button">Cargar expediente</button>
+      </div>`);
+    }
+    h.push('</div>');
+  }
+  if (!estado.zonas.length) return h.join('');
 
   h.push('<div class="grid grid-3">');
   for (const z of estado.zonas) {
@@ -664,6 +678,25 @@ document.addEventListener('click', (e) => {
       toast('Zona eliminada.');
       break;
     }
+    case 'cargar-expediente': {
+      const archivo = objetivo.dataset.archivo;
+      fetch(`expedientes/${archivo}`, { cache: 'no-store' })
+        .then((r) => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then((d) => {
+          if (!Array.isArray(d.zonas) || !d.zonas.length) throw new Error('El expediente no contiene zonas.');
+          const nuevas = d.zonas.filter((z) => !estado.zonas.some((x) => x.id === z.id));
+          estado.zonas.push(...nuevas);
+          estado.zonaId = nuevas[0]?.id || estado.zonaId;
+          if (d.umbrales) estado.umbrales = { ...UMBRALES_DEFAULT, ...d.umbrales };
+          if (d.escenario) estado.escenario = d.escenario;
+          estado.comparar = estado.zonas.slice(0, 3).map((z) => z.id);
+          estado.vista = 'detalle';
+          guardar(); render();
+          toast(nuevas.length ? `Expediente cargado: ${nuevas.map((z) => z.nombre).join(', ')}` : 'Ese expediente ya estaba cargado.');
+        })
+        .catch((err) => toast(`No se pudo cargar el expediente: ${err.message}`));
+      break;
+    }
     case 'demo': {
       const z = zonaDemo();
       estado.zonas.push(z);
@@ -882,9 +915,24 @@ function zonaDemo() {
 
 /* --------------------------------- inicio ------------------------------- */
 
+/* Expedientes publicados en el repositorio (opcional). Si no existen, la app
+ * funciona igual: el usuario captura o importa su propio JSON. */
+async function cargarExpedientesPublicados() {
+  try {
+    const r = await fetch('expedientes/index.json', { cache: 'no-store' });
+    if (!r.ok) return;
+    const d = await r.json();
+    if (Array.isArray(d.expedientes) && d.expedientes.length) {
+      estado.expedientes = d.expedientes;
+      render();
+    }
+  } catch { /* servido sin carpeta de expedientes: se ignora */ }
+}
+
 if (!cargar()) {
   // Primera visita: se abre con el plan a la vista para entender el marco.
 }
 if (!estado.zonaId && estado.zonas.length) estado.zonaId = estado.zonas[0].id;
 if (!estado.comparar.length && estado.zonas.length) estado.comparar = estado.zonas.slice(0, 3).map((z) => z.id);
 render();
+cargarExpedientesPublicados();

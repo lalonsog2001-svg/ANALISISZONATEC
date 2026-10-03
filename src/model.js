@@ -88,6 +88,7 @@ export const ESTADOS_PROPIEDAD = Object.freeze([
   { id: 'solo_contado', etiqueta: '🚫 Solo contado', excluye: true, motivo: 'Solo contado' },
   { id: 'juicio', etiqueta: '🚫 Litigio / juicio', excluye: true, motivo: 'Litigio / juicio' },
   { id: 'sin_precio', etiqueta: '🚫 Sin precio publicado', excluye: true, motivo: 'Sin precio publicado' },
+  { id: 'duplicado', etiqueta: '🚫 Duplicado de otra publicación', excluye: true, motivo: 'Duplicado de otra publicación' },
 ]);
 
 export const ESTADO_POR_ID = Object.freeze(
