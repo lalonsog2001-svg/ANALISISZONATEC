@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="es-MX">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AnalisisZonaTec — Viabilidad de zonas para apertura de oficina franquiciada</title>
+<meta name="description" content="Evaluador de viabilidad de zonas para apertura de oficina inmobiliaria franquiciada: ticket al 6%, rotación, participación de mercado requerida y dictamen con semáforo." />
+<link rel="stylesheet" href="styles.css" />
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏢</text></svg>" />
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">AZ</div>
+      <div>
+        <h1>AnalisisZonaTec</h1>
+        <p class="brand-sub">Director de Apertura y Operaciones · Franquicia inmobiliaria · CDMX</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <div class="escenario-switch" role="group" aria-label="Escenario de costo operativo">
+        <button class="chip-esc" data-escenario="buffer" type="button">Buffer $144k</button>
+        <button class="chip-esc" data-escenario="alto" type="button">Alto $160k</button>
+      </div>
+      <button class="btn btn-ghost" data-action="exportar" type="button" title="Descargar expediente JSON">⬇ Exportar</button>
+      <button class="btn btn-ghost" data-action="importar" type="button" title="Cargar expediente JSON">⬆ Importar</button>
+    </div>
+  </div>
+  <nav class="tabs" role="tablist">
+    <button class="tab" data-vista="zonas" type="button">Zonas</button>
+    <button class="tab" data-vista="detalle" type="button">Análisis</button>
+    <button class="tab" data-vista="comparar" type="button">Comparar</button>
+    <button class="tab" data-vista="plan" type="button">Plan 12 meses</button>
+    <button class="tab" data-vista="fuentes" type="button">Método y fuentes</button>
+  </nav>
+</header>
+
+<!-- Chips con el modelo financiero inmutable -->
+<section class="modelo-strip" aria-label="Modelo financiero base">
+  <div class="strip-item"><span class="strip-k">Costo con buffer</span><span class="strip-v" data-modelo="buffer">$144,000</span><span class="strip-u">MXN/mes</span></div>
+  <div class="strip-item"><span class="strip-k">Escenario alto</span><span class="strip-v" data-modelo="alto">$160,000</span><span class="strip-u">MXN/mes</span></div>
+  <div class="strip-item"><span class="strip-k">Ticket mín. (1 venta/mes)</span><span class="strip-v" data-modelo="ticket">$2,400,000</span><span class="strip-u">MXN al 6%</span></div>
+  <div class="strip-item"><span class="strip-k">Comisión estándar</span><span class="strip-v" data-modelo="comision">6%</span><span class="strip-u">vendedor / comprador / split 3+3</span></div>
+  <div class="strip-item strip-destacado"><span class="strip-k">Delimitación territorial</span><span class="strip-v" data-modelo="delimitacion">5,500</span><span class="strip-u">propiedades por oficina · no modificable</span></div>
+</section>
+
+<div class="aviso" role="note">
+  <strong>Sin datos inventados.</strong> Esta herramienta <em>no</em> se conecta a portales, RPP, Catastro ni INEGI: no descarga ni estima precios de mercado.
+  Todas las cifras de mercado las captura el usuario y quedan registradas con su fuente y URL.
+  Los campos marcados <span class="tag tag-sp1">SP1</span> son supuestos propuestos por AnalisisZonaTec y son editables; los marcados <span class="tag tag-sp2">SP2</span> provienen del modelo base del franquiciatario.
+  <button class="link" data-vista="fuentes" type="button">Ver método y fuentes →</button>
+</div>
+
+<main id="vista" class="vista" aria-live="polite"></main>
+
+<footer class="pie">
+  <p><strong>AnalisisZonaTec</strong> · Herramienta de cálculo y expediente. No constituye asesoría financiera, legal ni registral. Los dictámenes son tan confiables como los datos capturados y sus fuentes.</p>
+  <p class="pie-modelo">Modelo financiero base v<span data-modelo="version">1.0.0</span> · Importes en pesos mexicanos (MXN).</p>
+</footer>
+
+<input type="file" id="archivo-import" accept="application/json,.json" hidden />
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+<script type="module" src="src/app.js"></script>
+</body>
+</html>

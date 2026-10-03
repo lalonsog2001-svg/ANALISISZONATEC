@@ -1,0 +1,14 @@
+{
+  "expedientes": [
+    {
+      "archivo": "san-bartolo-ameyalco.json",
+      "nombre": "San Bartolo Ameyalco — Polígono Poniente (AO-04)",
+      "descripcion": "70 anuncios capturados de portales el 2026-10-02 (59 válidos). Álvaro Obregón, CP 01800/01807.",
+      "fecha": "2026-10-02",
+      "advertencia": "Muestra real capturada de portales, con URL por inmueble. Precios DE OFERTA, no de cierre. Certeza jurídica SIN MEDIR (0 de 59 folios en RPP) y competencia solo como piso de marcas detectadas.",
+      "informe": "docs/analisis-san-bartolo-ameyalco.md",
+      "anexo": "docs/anexo-datos-sba-ao-04.md",
+      "dictamen": "🟡 VIABLE CON CONDICIONES (90/100)"
+    }
+  ]
+}
