@@ -1,0 +1,14 @@
+# Sistema operativo / editores
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# Node (el proyecto no tiene dependencias, pero por si se agregan)
+node_modules/
+npm-debug.log*
+
+# Expedientes exportados desde la app (datos del usuario, no del repositorio)
+*.expediente.json
+analisiszonatec-expediente.json
